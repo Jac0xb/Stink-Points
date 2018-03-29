@@ -1,0 +1,27 @@
+<html>
+<head>
+	
+	<link rel="stylesheet" type="text/css" href="./resources/semantic/semantic.min.css">
+	<link rel="stylesheet" type="text/css" href="./resources/internal/page.css">
+	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.slim.js"></script>
+	<script src="./resources/semantic/semantic.min.js" type="text/javascript"></script>	
+	<script src="./resources/internal/page.js" type="text/javascript"></script>
+	
+</head>
+<body>
+
+    <div class="ui container">
+        <table>
+            <tr id="player-tablerow">
+                
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
+
+<script type="text/template" data-template="player">
+<th id="player-tablerow-${playerid}">${displayname}</th>
+</script>
