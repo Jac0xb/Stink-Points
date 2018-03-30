@@ -1,3 +1,36 @@
+.alignedcenter {
+  
+  text-align: center !important;
+  
+}
+
+.normieclature {
+    font-size: 1rem!important;
+}
+
+.button {
+  
+    touch-action: none;
+  
+}
+
+.card {
+  
+  touch-action: none;
+  
+}
+body {
+  
+  width: 100%;
+  touch-action: none;
+  
+}
+
+h3 { 
+  font-size: 8em;
+  font-weight: 300;
+}
+
 .fullwide {
   
   width: 100%;

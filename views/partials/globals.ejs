@@ -1,0 +1,21 @@
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<preference name="DisallowOverscroll" value="true" />
+
+<link rel="stylesheet" type="text/css" href="./resources/semantic/semantic.min.css">
+
+<script src="./resources/external/jquery.min.js" type="text/javascript"></script>
+<script src="./resources/external/client.min.js" type="text/javascript"></script>
+<script src="./resources/external/socket.io.slim.js"></script>
+<script src="./resources/semantic/semantic.min.js" type="text/javascript"></script>	
+<script src="./resources/external/jquery.fittext.js" type="text/javascript"></script>
+<script src="./resources/external/jsqr.js" type="text/javascript" ></script>
+
+<script>
+
+     if (window.location.hostname.includes("www")) {
+         
+        var local = window.location.href.replace("www.", "");
+        window.location.replace(local);
+     }
+
+</script>

@@ -1,0 +1,113 @@
+<style type="text/css">
+
+img{
+    border:0;
+}
+#main{
+    margin: 15px auto;
+    background:white;
+    overflow: auto;
+	width: 100%;
+}
+#header{
+    background:white;
+    margin-bottom:15px;
+}
+#mainbody{
+    background: white;
+    width:100%;
+	display:none;
+}
+#footer{
+    background:white;
+}
+#v{
+    width:320px;
+    height:240px;
+}
+#qr-canvas{
+    display:none;
+}
+#qrfile{
+    width:320px;
+    height:240px;
+}
+#mp1{
+    text-align:center;
+    font-size:35px;
+}
+#imghelp{
+    left:0px;
+    top:-160px;
+    z-index:100;
+    font:18px arial,sans-serif;
+    background:#f0f0f0;
+	margin-left:35px;
+	margin-right:35px;
+	padding-top:10px;
+	padding-bottom:10px;
+	border-radius:20px;
+}
+.selector{
+    margin:0;
+    padding:0;
+    cursor:pointer;
+    margin-bottom:-5px;
+}
+#outdiv
+{
+    width:320px;
+    height:240px;
+}
+
+
+ul{
+    margin-bottom:0;
+    margin-right:40px;
+}
+li{
+    display:inline;
+    padding-right: 0.5em;
+    padding-left: 0.5em;
+    font-weight: bold;
+    border-right: 1px solid #333333;
+}
+li a{
+    text-decoration: none;
+    color: black;
+}
+
+#footer a{
+	color: black;
+}
+.tsel{
+    padding:0;
+}
+
+</style>
+<script type="text/javascript" src="./Web QR_files/webqr.js"></script>
+<link rel="stylesheet" type="text/css" href="./resources/semantic/semantic.min.css">
+
+
+
+<li style="border: medium none;"><h3>Redeem Your Stink Code</h3></li>
+
+<div class="ui raised segment">
+  <p>QR Codes are hidden around the house or given as rewards for winning party games.Redeem them here for items.</p>
+</div>
+
+<div id="mainbody" style="display: inline;">
+    <div class="ui inverted segment">
+      <div class="ui inverted form">
+        <div class="field">
+            <div class="ui inverted large header">Take A Pic of Your QR Code!<br>
+                <input id="imagepicker" type="file" onchange="handleFiles(this.files)">
+            </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+<a><div class="ui large header" id="result"></div></a>
+<script type="text/javascript">load(); $(window).ready(function() {setimg()});</script>

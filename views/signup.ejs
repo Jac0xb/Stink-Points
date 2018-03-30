@@ -1,0 +1,58 @@
+<html>
+<head>
+	
+    <% include partials/globals %>
+	
+</head>
+<body>
+    <div class="ui grid container">
+        <div class="row" style="margin-top: 4em;">
+            <div class="ui basic segment">
+              <h1 class="ui sub header">
+                Stink Points The Game
+              </h1>
+              <span>This is your last chance. After this, there is no turning back. You take the blue pill—the story ends, you wake up in your bed and believe whatever you want to believe. You take the red pill—you stay in Wonderland, and I show you how deep the rabbit hole goes. Remember: all I'm offering is the truth. Nothing more..</span>
+            </div>
+        </div>
+        <div class="row">
+            <h2 class="ui dividing header">Enter Your Legal Name Below</h2>
+        </div>
+        <div class="row">
+            <form action="/signup" method="POST" class="ui form sixteen wide column ">
+                    <div class="field">
+                        <input type="text" name="username" placeholder="Legit Name">
+                        <input id="fingerprint" style="display: none;" type="text" name="fingerprint">
+                    </div>
+                <button class="ui button" type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+</body>
+
+<script>
+    $(window).ready(function() {
+        
+        var client = new ClientJS(); // Create A New Client Object
+        var fingerprint = client.getFingerprint(); // Get Client's Fingerprint
+        
+        $("#fingerprint").val(fingerprint);
+        
+        socket = io('http://stinkpoints.com:8080'); // Connect the socket on the port defined before.
+
+        socket.emit("validate", {_id: null, fingerprint: fingerprint});
+        
+        socket.on("reconfigure", function(address) {
+            console.log(address.user);
+            
+            var url = '/reconfigure';
+            var form = $('<form action="' + url + '" method="post">' +
+              '<input type="text" name="_id" value="' + address.user + '" />' +
+              '</form>');
+            $('body').append(form);
+            form.submit();
+        });
+        
+    })
+</script>
+
+</html>
