@@ -1,25 +1,130 @@
 /* globals $ io 
 
 */
-
 var socket = null;
 var GLOBAL_users = {};
 var GLOBAL_lastsort = null;
+var localuser = null;
 
+/*
+*   Update Log.
+*/
+function CreateItem(item) {
+
+    console.log(item)
+
+    var $item = $("#" + item._id);
+
+    if ($item.length > 0) {
+        return;
+    }
+    
+    var template = $('script[data-template="itemrow"]').text();
+    
+	var string = stringf(template, {id: item._id});
+    var $itemtemplate = $(string);
+    
+    $itemtemplate.find(".itemtype").text(item.itemtype)
+    
+    for (var key in GLOBAL_users) {
+        
+        if (!GLOBAL_users[key] || !GLOBAL_users[key]._id || !GLOBAL_users[key].displayname) {
+            continue;
+        }
+        
+        $itemtemplate.find(".selector").append(" <option value="+ GLOBAL_users[key]._id + ">" + GLOBAL_users[key].displayname + "</option>")
+
+    }
+    
+    $itemtemplate.find(".selector").on('change', function() {
+        if(this.value && this.value.length > 0) {
+            $itemtemplate.find(".button").removeClass("disabled");
+        }
+        else {
+            $itemtemplate.find(".button").addClass("disabled");
+        }
+    });
+    
+    $itemtemplate.find(".button").click(function() {
+        
+        var selector = $itemtemplate.find(".selector");
+        
+        if (selector.val() && selector.val().length > 0) {
+            
+            
+            var form = $('<form action="/useitem/' + item._id + '" method="post">' +
+            '<input type="text" name="target" value="' + selector.val() + '" />' +
+            '</form>');
+            $('body').append(form);
+            form.submit();
+
+        }
+        
+    });
+    
+    $("#item-tablerow").prepend($itemtemplate);
+    
+}
+
+function UpdateLog(log) {
+
+    var $log = $("#" + log._id);
+
+    if ($log.length > 0) {
+        return;
+    }
+    
+    var template = $('script[data-template="log"]').text();
+    
+	var string = stringf(template, {id: log._id});
+    var $logtemplate = $(string);
+    
+    $logtemplate.find(".log").text(log.log);
+    
+    if (log.timestamp) {
+        var date =  new Date(log.timestamp)
+        var minute = date.getMinutes();
+        
+        if (minute < 10) {
+            minute = "0" + minute;
+        }
+        
+        if ((date.getHours() >= 12))
+            $logtemplate.find(".timestamp").text(date.getHours() - 12 + ":" + minute + "PM");
+        else 
+            $logtemplate.find(".timestamp").text(date.getHours() + ":" + minute + "AM");
+    }
+    
+    
+    $("#logs-tablerow").prepend($logtemplate);
+    
+}
+
+/*
+*   Update User Scoreboard card.
+*/
 function UpdateUser(user) {
 
     var $player = $("#" + user._id);
 
     if ($player.length > 0) {
         
-        if ($player.find(".resize").text() !== user.displayname) {
-		    $player.find(".resize").text(user.displayname);
+        var button = $player.find(".button");
+        button.removeClass("disabled");
+        
+        if (user.disabled) {
+            button.addClass("disabled");
+            button.text("This is You")
+        }
+        
+        var displayname = $player.find(".resize");
+        
+        if (displayname.text() !== user.displayname) {
+		    displayname.text(user.displayname);
         }
         
         var points = $player.find(".value");
-        
-        console.log(points)
-        
+    
         if (points.text().toString() !== user.points.toString()) {
 		    points.text(user.points);
         }
@@ -31,13 +136,27 @@ function UpdateUser(user) {
     var $itemtemplate = $(string);
     
     $("#player-tablerow").append($itemtemplate);
-    
+
     var button = $itemtemplate.find(".button");
     
+        console.log(localuser)
+    
     button.click(function() {
+        
+        if (localuser == null) {
+            console.log("Local User was null!")
+        }
+        
     	//var username = $(this).parent().parent().attr("id").replace("player-tablerow-", "");
-    	socket.emit("givestink", user);
+    	socket.emit("givestink", {target:user, source:localuser, damage: 1});
     	
+    	setTimeout(function() {
+    	   
+    	   if (localuser && localuser.ammo <= 0) {
+    	       $(".playercard").find(".button").addClass("disabled");
+    	   }
+    	    
+    	});
     	
     });
     
@@ -46,43 +165,110 @@ function UpdateUser(user) {
         button.text("This is You")
     }
     
+    
+    if (user._id === "5abeeb70c3e7272fa47e7182") {
+
+        $itemtemplate.find(".resize").html("<i class='icon birthday cake'></i>" + $itemtemplate.find(".resize").html())
+        console.log($itemtemplate.find(".resize").html())
+    }
     $("#" + user._id).find(".resize").fitText(1.0, { minFontSize: '20px', }); // { minFontSize: '1px', maxFontSize: '5px' });
     //$(".button").nodoubletapzoom();
 }
 
 
 $(document).ready(function() {
-    console.log("Connect")
     
-    if (getCookieValue("id") == null || getCookieValue("id").length < 0) {
-        console.log("");
+    if (window.location.hostname.includes("/desktop")) {
+        ("#ammodisplay").text("Go to StinkPoints.com to Signup or LEAVE")
     }
     
-    var localuser = decodeURIComponent(getCookieValue("id")).split('"')[1];
+    $("#logstoggle").click(function() {
+        
+        var $logs = $("#logs");
+        
+        if ($logs.css("display") !== "none" || $logs.css("display") == null)
+            $logs.css("display", "none");
+        else
+            $logs.css("display", "");       
+    })
     
-    if (!localuser) {
-        localuser = getCookieValue("id");
+    
+    if (getCookieValue("id") == null || getCookieValue("id").length < 0) {
+    }
+    
+    var userid = decodeURIComponent(getCookieValue("id")).split('"')[1];
+    
+    if (!userid) {
+        userid = getCookieValue("id");
     }
     
     var client = new ClientJS(); // Create A New Client Object
     var fingerprint = client.getFingerprint(); // Get Client's Fingerprint
     
     socket = io('http://stinkpoints.com:8080'); // Connect the socket on the port defined before.
+    
+    socket.emit("requestalllogs");
+    
+    socket.on("getalllogs", function (logs) {
+        for (var i in logs) {
+            UpdateLog(logs[i]);
+        }
+    })
+    
+    socket.emit("validate", {_id: userid, fingerprint: fingerprint});
+    
+    socket.emit("requestuser", userid);
+    
+    socket.on("getuser", function (user) {
+        
+        localuser = user;
+        socket.emit('request-items', localuser);
+        
+    });
+    
+    socket.on("get-items", function(items) {
+        
+        $(".stinkitem").remove();
+        
+        console.log(items)
+        
+        if (items) {
+            for (var key in items) {
+                CreateItem(items[key]);
 
-    socket.emit("validate", {_id: localuser, fingerprint: fingerprint});
-
+            }
+        }
+        
+    });
+    
     socket.on('update-users', function (users) { // When a 'update-value' event is received, execute the following code.
     
         $.each( users, function( index, user ) {
             
             var user_cache = GLOBAL_users[user._id];
             
-            if (!user_cache || user_cache.points != user.points || user_cache.displayname != user.displayname) {
+            if (!user_cache || user_cache.ammo != user.ammo || user_cache.points != user.points || user_cache.displayname != user.displayname) {
                 
-                if (localuser === user._id) {
+                if (userid === user._id) {
+                    
+                    $("#ammodisplay").text("You have " + user.ammo + " Stink Points to Give")
                     user.disabled = true;
+                    localuser = user;
+                    if (localuser && localuser.ammo > 0) {
+                	    $(".playercard").find(".button").removeClass("disabled");
+                	}
                 }
-                
+            	if (user.disabled && !user.disabled && user_cache.disabled) {
+            	    $("#" + user._id).find("button").removeClass("disabled");
+            	}
+            	if (user.disabled) {
+            	    $("#" + user._id).find("button").addClass("disabled");
+            	}
+                if (localuser && localuser.ammo <= 0) {
+            	    $(".playercard").find(".button").addClass("disabled");
+            	}
+
+            	
                 GLOBAL_users[user._id] = user;
                 UpdateUser(user);
                 resort();
@@ -120,24 +306,6 @@ $(document).ready(function() {
     console.log($("iframe").find("img"))
     $("iframe").find("#qrimg").click();
     
-    (function($) {
-      var IS_IOS = /iphone|ipad/i.test(navigator.userAgent);
-      $.fn.nodoubletapzoom = function() {
-        if (IS_IOS)
-          $(this).bind('touchstart', function preventZoom(e) {
-            var t2 = e.timeStamp
-              , t1 = $(this).data('lastTouch') || t2
-              , dt = t2 - t1
-              , fingers = e.originalEvent.touches.length;
-            $(this).data('lastTouch', t2);
-            if (!dt || dt > 500 || fingers > 1) return; // not double-tap
-    
-            e.preventDefault(); // double tap - prevent the zoom
-            // also synthesize click events we just swallowed up
-            $(this).trigger('click').trigger('click');
-          });
-      };
-    })($);
         
 });
 
@@ -213,4 +381,29 @@ function stringf(string, replace_set) {
 function getCookieValue(a) {
     var b = document.cookie.match('(^|;)\\s*' + a + '\\s*=\\s*([^;]+)');
     return b ? b.pop() : '';
+}
+
+function deepEqual(obj1, obj2) {
+
+    //compare primitives
+    if(isPrimitive(obj1) && isPrimitive(obj2))
+        return obj1 == obj2;
+
+    if(Object.keys(obj1).length !== Object.keys(obj2).length)
+        return false;
+
+    //compare objects with same number of keys
+    for(let key in obj1)
+    {
+        if(!(key in obj2)) return false; //other object doesn't have this prop
+        if(!deepEqual(obj1[key], obj2[key])) return false;
+    }
+
+    return true;
+}
+
+//check if value is primitive
+function isPrimitive(obj)
+{
+    return (obj !== Object(obj));
 }

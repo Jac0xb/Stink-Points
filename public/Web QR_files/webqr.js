@@ -34,7 +34,11 @@ function handleFiles(f)
               
                 const code = jsQR(imagedata.data, img.width, img.height);
                 if (code) {
+                    console.log(code)
                     read(code.data);
+                }
+                {
+                    read("Something has gone terribly wrong!");
                 }
                 
             }

@@ -4,6 +4,10 @@
   
 }
 
+body, html { 
+  -ms-overflow-style: none !important; 
+}
+
 .normieclature {
     font-size: 1rem!important;
 }
@@ -14,15 +18,9 @@
   
 }
 
-.card {
-  
-  touch-action: none;
-  
-}
 body {
   
   width: 100%;
-  touch-action: none;
   
 }
 

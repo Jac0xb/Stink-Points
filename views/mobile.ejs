@@ -10,12 +10,28 @@
 <body>
     <div class="ui center aligned container">
         <h3 class="ui center aligned"><img style="width:100%;" src="./resources/internal/images/title.png"></h3>
-        
+
         <div id="menu" class="ui three item menu">
             <a class="active item" data-tab="scoreboard"><i class="icon users"></i>Stink Board</a>
             <a class="item" data-tab="shop"><i class="icon credit card"></i>Stink Shop</a>
             <a class="item" data-tab="inventory"><i class="icon sitemap"></i>Inventory</a>
 	    </div>
+        <div id="logstoggle" class="ui fullwide button">
+          Toggle Game Logs
+        </div>
+	    <div id="logs" class="ui segment" readonly tabindex="-1" style="min-width: 100%; min-height: 200px; max-height: 200px; overflow-y: scroll;">
+	        <div readonly tabindex="-1" class="ui header tiny">Game Logs</div>
+            <table readonly tabindex="-1" class="ui unstackable fixed fullwide celled table">
+              <thead>
+                  <th>Time</th>
+                  <th>Info</th>
+              </thead>
+              <tbody id="logs-tablerow">
+
+              </tbody>
+            </table>
+	    </div>
+        <div id="ammodisplay" class="ui header small"></div>
 	    <div class="ui tab active" data-tab="scoreboard" >
             <table class="ui unstackable fixed fullwide celled table">
               <thead></thead>
@@ -47,4 +63,12 @@
 
 <script type="text/template" data-template="playercard">
     <% include partials/templates/playercard_mobile %>
+</script>
+
+<script type="text/template" data-template="log">
+    <% include partials/templates/log %>
+</script>
+
+<script type="text/template" data-template="itemrow">
+    <% include partials/templates/itemrow %>
 </script>
