@@ -49,14 +49,21 @@ User.Model_CreateUser = function(username, fingerprint, callback_success, callba
     })
 }
 
+/*
+*   
+*   
+*
+*/
 User.Model_UseItem = function(user_id, item_id, target_username , callback_success, callback_failure) {
-        
+    
+    // Find the user 'using' the item.
     User.findById(user_id, function(err, user) {
         
         if (err || !user || user.items.indexOf(item_id) < 0) {
             return;
         }
         
+        // Remove item
         user.items.remove(item_id);
         user.save();
         
