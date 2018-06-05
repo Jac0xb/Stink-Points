@@ -52,7 +52,7 @@ function CreateItem(item) {
         if (selector.val() && selector.val().length > 0) {
             
             
-            var form = $('<form action="/useitem/' + item._id + '" method="post">' +
+            var form = $('<form action="/item/' + item._id + '" method="post">' +
             '<input type="text" name="target" value="' + selector.val() + '" />' +
             '</form>');
             $('body').append(form);
@@ -205,7 +205,7 @@ $(document).ready(function() {
     var client = new ClientJS(); // Create A New Client Object
     var fingerprint = client.getFingerprint(); // Get Client's Fingerprint
     
-    socket = io('http://stinkpoints.com:8080'); // Connect the socket on the port defined before.
+    socket = io('http://' + window.location.hostname + ':8080/'); // Connect the socket on the port defined before.
     
     socket.emit("requestalllogs");
     
