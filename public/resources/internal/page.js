@@ -28,11 +28,11 @@ function CreateItem(item) {
     
     for (var key in GLOBAL_users) {
         
-        if (!GLOBAL_users[key] || !GLOBAL_users[key]._id || !GLOBAL_users[key].displayname) {
+        if (!GLOBAL_users[key] || !GLOBAL_users[key]._id || !GLOBAL_users[key].username) {
             continue;
         }
         
-        $itemtemplate.find(".selector").append(" <option value="+ GLOBAL_users[key]._id + ">" + GLOBAL_users[key].displayname + "</option>")
+        $itemtemplate.find(".selector").append(" <option value="+ GLOBAL_users[key]._id + ">" + GLOBAL_users[key].username + "</option>")
 
     }
     
@@ -117,10 +117,10 @@ function UpdateUser(user) {
             button.text("This is You")
         }
         
-        var displayname = $player.find(".resize");
+        var username = $player.find(".resize");
         
-        if (displayname.text() !== user.displayname) {
-		    displayname.text(user.displayname);
+        if (username.text() !== user.username) {
+		    username.text(user.username);
         }
         
         var points = $player.find(".value");
@@ -132,7 +132,7 @@ function UpdateUser(user) {
     }
     
     var template = $('script[data-template="playercard"]').text();
-	var string = stringf(template, {id: user._id, pid: user._id, displayname: user.displayname, points: user.points});
+	var string = stringf(template, {id: user._id, pid: user._id, username: user.username, points: user.points});
     var $itemtemplate = $(string);
     
     $("#player-tablerow").append($itemtemplate);
@@ -247,7 +247,7 @@ $(document).ready(function() {
             
             var user_cache = GLOBAL_users[user._id];
             
-            if (!user_cache || user_cache.ammo != user.ammo || user_cache.points != user.points || user_cache.displayname != user.displayname) {
+            if (!user_cache || user_cache.ammo != user.ammo || user_cache.points != user.points || user_cache.username != user.username) {
                 
                 if (userid === user._id) {
                     

@@ -1,82 +1,116 @@
+var async = require("async");
+var [Item, Log] = require("../../framework/objects")(["item", "log"]);
+var Model = require("./model");
+
 // Common properties.
 var Common = {
     usernameRegex : new RegExp("[a-zA-Z]+[a-zA-Z\s]*")
 }
 
 /**
- *  
+ *  Validates that a string complies with username standards.
  */
 function isValidUsername(username) {
     return (username && Common.usernameRegex.test(username) && username.length <= 20 && username.length >= 0 );
 }
 
 /**
- *  
+ *  Creates a new user using Mongoose's model and schema.
  */
-function createUser(username, fingerprint, callback_success, callback_failure) {
+function createUser(username, callbackSuccess, callbackFailure) {
     
-    var model = module.exports.model;
-    
+    // Test validity of username.
     if (!isValidUsername(username)) {
-        callback_failure(username);
-        return;
+        return callbackFailure(username);
     }
     
-    // See if user already exists, or if they need to be created.
-    model.findOne({displayname : username}, function(err, founduser) {
-
-        if (founduser) {
-            callback_success(founduser);
-            return;
-        }
-        else if (err) {
-            callback_failure(username);
-            return;
-        }
+    async.waterfall([
+        // Checks if user exists in MongoDB database.
+        function checkUserExistence(next) {
+            
+            Model.findOne({username : username}, function(err, foundUser) {
         
-        // 'founduser' doesn't exist, so we create a new user.
-        model.create(new model({displayname: username, points: 0, items: []}), function (err, user) {
-            
-            if (err || !user) {
-                callback_failure(username);
-                return;
-            };
+                if (foundUser) {
+                    return callbackSuccess(foundUser);
+                }
+                else if (err) {
+                    next(err);
+                }
                 
-            callback_success(user._id);
+                next(null);
+                
+            })
             
-        });
-    })
+        },
+        // Creates a user in MongoDB database.
+        function insertUser(next) { 
+            
+            Model.create(new User({username: username, points: 0, items: []}), function (err, user) {
+            
+                if (err || !user) {
+                    next(err);
+                };
+                    
+                callbackSuccess(user);
+            
+            });
+        }
+    ],
+    function(err, status) {
+        
+        callbackFailure(err + " | " + username);
+        
+    });
 }
 
 /**
  *  
  */
-function useItem(user_id, item_id, target_username , callback_success, callback_failure) {
+function useItem(sourceUserID, item_id, targetUserID , callbackSuccess, callbackFailure) {
     
-    var model = module.exports.model;
-    
-    // Find the user 'using' the item.
-    model.findById(user_id, function(err, user) {
-        
-        if (err || !user || user.items.indexOf(item_id) < 0) {
-            return;
-        }
-        
-        // Remove item
-        user.items.remove(item_id);
-        user.save();
-        
-        user.model.findById(target_username, function(err, targetuser) {
+    async.waterfall([
+        // Checks if 'source user' exists in MongoDB database.
+        function checkSourceUserExistence(next) {
             
-            if (err || !targetuser) { 
-                callback_failure(err); 
-                return;
-            };
-            
-            models.Item.model.findById(item_id, function(err, item) {
+            // Find source user.
+            Model.findById(sourceUserID, function(err, sourceUser) {
                 
+                // Check if user exists.
+                if (err || !sourceUser || sourceUser.items.indexOf(item_id) <= 0) {
+                    return next(err);
+                }
+                
+                // Remove item from user's inventory.
+                sourceUser.items.remove(item_id).save(function(err, result) {
+                    
+                    if (err) {
+                        return next(err);
+                    }
+                    
+                    next(null, {sourceUser})
+                    
+                });
+                
+            });
+        },
+        // Checks if 'target user' exists in MongoDB database.
+        function checkTargetUserExistence(args, next) {
+            
+            Model.findById(targetUserID, function(err, targetUser) {
+            
+                if (err || !targetUser) { 
+                    return next(err);
+                };
+                
+                next(null, {sourceUser : args.sourceUser, targetUser} );
+            
+            });
+        },
+        function useItem(args, next) {
+            Item.model.findById(item_id, function(err, item) {
+        
                 if (err || !item) {
-                    callback_failure(err); 
+                    callbackFailure(err); 
                     return;
                 };
                 
@@ -86,44 +120,161 @@ function useItem(user_id, item_id, target_username , callback_success, callback_
                     var message = "";
                     
                     if (itemtype === "stinkbomb") {
-                        targetuser.points += 50;
-                        targetuser.save();
-                        message = `${user.displayname} JUST STINK BOMBED ${targetuser.displayname} FOR 50 STINK POINTS!!!!!`;
+                        args.targetUser.points += 50;
+                        args.targetUser.save();
+                        message = `${args.sourceUser.username} JUST STINK BOMBED ${args.targetUser.username} FOR 50 STINK POINTS!!!!!`;
                     }
                     else if (itemtype === "stinknuke") {
-                        targetuser.points += 1000;
-                        targetuser.save();
-                        message = `${user.displayname} JUST STINK NUKED ${targetuser.displayname} FOR 1000 STINK POINTS!!!!!`;
+                        args.targetUser.points += 1000;
+                        args.targetUser.save();
+                        message = `${args.sourceUser.username} JUST STINK NUKED ${args.targetUser.username} FOR 1000 STINK POINTS!!!!!`;
                     }
                     else if (itemtype === "stinksword") {
-                        targetuser.points += 10;
-                        targetuser.save();
-                        message = `${user.displayname} JUST STINK STABBED ${targetuser.displayname} FOR 10 STINK POINTS!!!!!`;
+                        args.targetUser.points += 10;
+                        args.targetUser.save();
+                        message = `${args.sourceUser.username} JUST STINK STABBED ${args.targetUser.username} FOR 10 STINK POINTS!!!!!`;
                     }
                     else {
-                        callback_failure("UNKNOWN ITEM" + itemtype); 
-                        return;
+                        return next(err = "UNKNOWN ITEM" + itemtype); 
                     }
                     
                     item.remove();
-                    callback_success(message, item, targetuser);
-                    return;
+                    callbackSuccess(message, item, args.targetUser);
                     
                 }
                     
-                callback_failure("Item ID '" + item_id + "' did not exist."); 
-                
+                callbackFailure("Item ID '" + item_id + "' did not exist."); 
             });
-        });
+        }
+    ],
+    function(err, status) {
+        
+        callbackFailure(err);
+        
     });
+    
 }
 
-module.exports = (model) => {
-    module.exports.model = model; 
-    return {
-        Common,
-        isValidUsername,
-        createUser,
-        useItem
-    };
+
+function giveDamage(sourceUserJObject, targetUserJObject, damage, callbackSuccess) {
+    
+    async.waterfall([
+        function findSourceUser(next) {
+            
+            Model.findById(sourceUserJObject._id, function(err, sourceUser) {
+                
+                if (sourceUser == null || err) {
+                    return next( err || {message : `User was not found in DB: ${sourceUserJObject._id}`});
+                }
+                
+                if (sourceUser.ammo >= damage) {
+                    next(null, sourceUser)
+                }
+                
+            } );
+            
+        },
+        function decrementAmmo(sourceUser, next) {
+            
+            sourceUser.update({ammo: sourceUser.ammo - damage}, function(err, result) {
+                
+                if (!result.ok || err) {
+                    return next(err || next({message : "Something went wrong with updating a user's ammo.", result}))
+                }
+                
+                next(null, sourceUser)
+                
+            });
+            
+        },
+        function incrementDamage(sourceUser, next) {
+            
+            Model.findByIdAndUpdate(targetUserJObject._id, {$inc : {points : damage}}, function(err, targetUser ) {
+                
+                if (!targetUser || err) {
+                    return next(err || next({message : "Something went wrong with updating a user's damage.", targetUser}));
+                }
+                
+            });
+            
+        },
+        function logInteraction(targetUser, sourceUser, next) {
+            
+            Log.model.create({log: `${sourceUser.username} just gave ${targetUser.username} ${damage} Stink Point(s)!`}, function(err, log) {
+               
+                if (!log) {
+                    return next({message: "Log could not be created."});
+                };
+            
+                callbackSuccess(log); 
+                
+            });
+        }
+    ], function (err) {
+        console.log(`Error: ${err.message}`);
+        console.log(err);
+    });
+
+}        
+
+function giveDamage(sourceUserJObject, targetUserJObject, damage, callbackSuccess) {
+    
+    async.waterfall([
+        function findSourceUser(next) {
+            
+            Model.findById(sourceUserJObject._id, (...args) => next(...args) );
+            
+        },
+        function decrementAmmo(sourceUser, next) {
+            
+            if (sourceUser == null) {
+                return next({message : `User was not found in DB: ${sourceUserJObject._id}`});
+            }
+            
+            if (sourceUser.ammo >= damage) {
+                sourceUser.update({ammo: sourceUser.ammo - damage}, (...args) => next(...args, sourceUser ) );
+            }
+            
+        },
+        function incrementDamage(result, sourceUser, next) {
+            
+            if (!result.ok) {
+                return next({message : "Something went wrong with updating a user's ammo.", result})
+            }
+            
+            Model.findByIdAndUpdate(targetUserJObject._id, {$inc : {points : damage}}, (...args) => next(...args, sourceUser));
+            
+        },
+        function logInteraction(targetUser, sourceUser, next) {
+            
+            if (!targetUser) {
+                return next({message : "Something went wrong with updating a user's damage.", targetUser})
+            }
+            
+            Log.model.create({log: `${sourceUser.username} just gave ${targetUser.username} ${damage} Stink Point(s)!`}, (...args) => next(...args));
+                
+            
+        },
+        function runCallback(log, next) {
+            
+            if (!log) {
+                return next({message: "Log could not be created."});
+            };
+            
+            callbackSuccess(log);
+                
+        }
+    ], function (err) {
+        console.log(`Error: ${err.message}`);
+        console.log(err);
+    });
+
+}        
+
+module.exports = {
+    Common,
+    isValidUsername,
+    createUser,
+    useItem,
+    giveDamage
 };

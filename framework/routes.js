@@ -1,34 +1,18 @@
-var ExpressApp = require("./express_ext.js");
-//var Models = require("./models")();
+var expressApp = require("./express_ext.js");
+var [User, Item, Bag, Log] = require("./objects")(["user", "item", "bag", "log"]);
 var sanitizer = require("sanitize")();
 
-const GLOBAL_FUTUREDATE = new Date(new Date().getTime() + (1000*60*60*24*365*10));
+var Common = { 
+    infiniteExpire : () => { return new Date(new Date().getTime() + (1000*60*60*24*365*10)) }
+}
 
 /*
-*   
+*   GET: Main->signup
 */
-//ExpressApp.post("/reconfigure", function (req, res) {
-//    
-//    // See if the client has the cookie 'id'.
-//    var userid = req.cookies.id;
-//    
-//    if (userid) {
-//        res.redirect("/");
-//        return;
-//    }
-//    
-//    // If not, we assign the user the cookie provided in the post request body.
-//    res.cookie("id", req.body._id, {expires: GLOBAL_FUTUREDATE});
-//    res.render("bad.ejs");
-//})
-
-/*
-*   User signup.
-*/
-ExpressApp.get("/signup", function(req, res) {
+expressApp.get("/signup", function(req, res) {
     
     // See if the client has the cookie 'id'.
-    var userid = sanitizer.value(req.cookies.id, 'string');;
+    var userid = sanitizer.value(req.cookies.id, String);
     
     if (userid) {
         res.redirect("/");
@@ -40,12 +24,12 @@ ExpressApp.get("/signup", function(req, res) {
 });
 
 /*
-*   
+*   POST: Main->signup
 */
-ExpressApp.post("/signup", function(req, res) {
+expressApp.post("/signup", function(req, res) {
     
     // See if the client has the cookie 'id'.
-    var userid = req.cookies.id;
+    var userid = sanitizer.value(req.cookies.id, String);
     
     if (userid) {
         res.redirect("/");
@@ -53,29 +37,29 @@ ExpressApp.post("/signup", function(req, res) {
     }
     
     // The function called if the user is successfully created.
-    var callback_success = function (user) {
-        Models.ModeratorLog.extensions.createLog("User Successfully Created: " + user.displayname);
-        res.cookie("id", user._id, {expires: GLOBAL_FUTUREDATE});
+    var callbackSuccess = function (userObject) {
+        Log.statics.createAdminLog("User Successfully Created: " + userObject.username);
+        res.cookie("id", userObject._id, {expires: Common.infiniteExpire()});
         res.redirect("/");
     };
 
     // The function called if the user is UNsuccessfully created.    
-    var callback_failure = function(username) {
-        Models.ModeratorLog.extensions.createLog("User Not Created: " + username);
+    var callbackFailure = function(username) {
+        Log.statics.createAdminLog("User Not Created: " + username);
         res.redirect("/signup?msg=failed");
     }
     
-    Models.User.statics.createUser(req.body.username, null, callback_success, callback_failure);
+    User.statics.createUser(req.body.username, callbackSuccess, callbackFailure);
 
 })
 
 /*
 *
 */
-ExpressApp.post("/item/:item", function(req, res) {
+expressApp.post("/item/:item", function(req, res) {
     
-    var userid = req.cookies.id;
-    var itemid = req.params.item;
+    var userid = sanitizer.value(req.cookies.id, String);
+    var itemid = sanitizer.value(req.params.item, String);
     var target_username = req.body.target;
     
     if (!userid || !target_username || !itemid) {
@@ -84,59 +68,61 @@ ExpressApp.post("/item/:item", function(req, res) {
     }
 
     var callback_success = function(message, item, target) {
-        Models.Log.model.create({log: message});
+        Log.statics.createAdminLog(message);
         res.render("item.ejs", {item: item, target: target});
         return;
     }
 
     var callback_failure = function(err) {
-        
-        console.log(err);
+        Log.statics.createAdminLog(err);
         res.redirect("/");
-        
     }
-
-    Models.User.statics.useItem(userid, itemid, target_username, callback_success, callback_failure);
+    
+    console.log(User);
+    
+    User.statics.useItem(userid, itemid, target_username, callback_success, callback_failure);
     
 });
 
-ExpressApp.get("/switchuser/:user", function(req, res) {
+expressApp.get("/switchuser/:user", function(req, res) {
     
-    var user = req.params.user;
+    var username = sanitizer.value(req.params.user, String);
     
-    var farFuture = new Date(new Date().getTime() + (1000*60*60*24*365*10)); // ~10y
-    res.cookie("id", user, {expires: farFuture});
-    
+    res.cookie("id", username, {expires: Common.infiniteExpire()});
     res.redirect("/");
     
 })
 
-ExpressApp.get("/rewards", function(req, res) {
+expressApp.get("/rewards", function(req, res) {
     
-    var username = req.cookies.id;
-    var reward = req.query.reward;
+    var userid = sanitizer.value(req.cookies.id, String);
+    var reward = sanitizer.value(req.query.reward, String);
     
-    console.log(username);
-    
-    if (!username) {
+    if (!userid) {
         res.redirect("/signup");
         return;
     }
 
-    
-    Models.Bag.model.findById(reward, function(err, bag) {
+    Bag.model.findById(reward, function(err, bag) {
        
+        if (err || !bag) { 
+           res.redirect("/");
+           return console.log(err);
+        }
        
-       if (err || !bag) { console.log(err); res.redirect("/"); return; }
-       
-       
-        Models.Item.model.findById(bag.item, function(err, item) {
+        Item.model.findById(bag.item, function(err, item) {
             
-            if (err || !item) { console.log(err); res.redirect("/"); return; }
+            if (err || !item) { 
+                res.redirect("/"); 
+                return console.log(err); 
+            }
                 
-            Models.User.model.findById(username, function(err, user) {
+            User.model.findById(userid, function(err, user) {
                 
-                if (err || !user) { console.log(err); res.redirect("/"); return; }
+                if (err || !user) { 
+                    res.redirect("/"); 
+                    return console.log(err);
+                }
                 
                 user.items.push(item);
                 user.save();
@@ -151,30 +137,30 @@ ExpressApp.get("/rewards", function(req, res) {
     
 });
 
-ExpressApp.get("/desktop", function(req, res) {
+expressApp.get("/desktop", function(req, res) {
 
     res.render("mobile.ejs");
     
 });
 
-ExpressApp.get("/createbag/:itemtype", function(req, res) {
+expressApp.get("/createbag/:itemtype", function(req, res) {
 
-    var username = req.cookies.id;
-    var itemtype = req.params.itemtype;
+    var userid = sanitizer.value(req.cookies.id, String);
+    var itemtype = sanitizer.value(req.params.itemtype, String);
     
     if (!itemtype) return;
     
     
-    if (!username) {
+    if (!userid) {
         res.redirect("/signup");
         return;
     }
     
-    Models.Item.model.create({itemtype: itemtype}, function(err, item) {
+    Item.model.create({itemtype: itemtype}, function(err, item) {
         
         if (err || !item) { console.log(err); return; }
         
-        Models.Bag.model.create({item: item}, function(err, bag) {
+        Bag.model.create({item: item}, function(err, bag) {
             res.send("stinkpoints.com/rewards?reward=" + bag.id);
             return;
         })
@@ -187,11 +173,11 @@ ExpressApp.get("/createbag/:itemtype", function(req, res) {
     
 });
 
-ExpressApp.get("/", function(req, res) {
+expressApp.get("/", function(req, res) {
 
-    var username = req.cookies.id;
+    var userid = sanitizer.value(req.cookies.id, String);
     
-    if (!username) {
+    if (!userid) {
         res.redirect("/signup");
         return;
     }
@@ -200,6 +186,6 @@ ExpressApp.get("/", function(req, res) {
     
 });
 
-ExpressApp.get("*", function(req, res) {
+expressApp.get("*", function(req, res) {
     res.redirect("/");
 });

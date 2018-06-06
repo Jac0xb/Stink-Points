@@ -1,7 +1,6 @@
 const express = require("express");
 var app = express();
-
-//var Models = require("./models")();
+var [User, Item, Bag, Log] = require("./objects")(["user", "item", "bag", "log"]);
 var io = require('./socket').io;
 
 app.use(require("body-parser").urlencoded({ extended: true }));
@@ -13,9 +12,9 @@ app.set("view engine", "ejs");
 function findInvalidUsers(req, res, next) {
 
     var username = req.cookies.id;
-
+    
     if (username) {
-        Models.User.model.findById(username, function(err, user) {
+        User.model.findById(username, function(err, user) {
 
             if (err || user == null) {
                 res.clearCookie("id");
@@ -41,7 +40,7 @@ app.listen(7777, "172.31.34.153", function() {
 
         var date = new Date(Date.now())
         
-        Models.Log.model.create({ log: "Stink Point rations have been dispersed to all." }, function(err, log) {
+        Log.model.create({ log: "Stink Point rations have been dispersed to all." }, function(err, log) {
 
             if (err || !log) return;
 
@@ -55,13 +54,15 @@ app.listen(7777, "172.31.34.153", function() {
                 clients[key].emit("getalllogs", { log });
             }
         });
-        Models.User.model.update({}, { $inc: { ammo: 1 } }, { multi: true }, function(err, success) {
-
-            console.log("Stink Points have been Dispensed.");
+        User.model.update({}, { $inc: { ammo: 1 } }, { multi: true }, function(err, success) {
+            
+            if (err) {console.log(err)}
+            
+            //console.log("Stink Points have been Dispensed.");
 
         });
 
-    }, 1000)
+    }, 5000)
 })
 
 module.exports = app;

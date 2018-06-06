@@ -2,7 +2,7 @@
 var mongoose = require("mongoose");
 
 // Log Schema
-var LogSchema = mongoose.Schema({
+var logSchema = mongoose.Schema({
     log: String,
     timestamp: {type: Date, default: Date.now},
     admin: Boolean,
@@ -17,10 +17,10 @@ var LogSchema = mongoose.Schema({
 });
 
 // Log Model
-var LogModel = mongoose.model("Log", LogSchema);
+var logModel = mongoose.model("Log", logSchema);
 
 // Export
 module.exports = { 
-    statics : require("./statics")(LogModel), 
-    model : LogModel
+    statics : require("./statics")(logModel), 
+    model : logModel
 };
