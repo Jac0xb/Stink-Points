@@ -58,29 +58,29 @@ expressApp.post("/signup", function(req, res) {
 */
 expressApp.post("/item/:item", function(req, res) {
     
-    var userid = sanitizer.value(req.cookies.id, String);
-    var itemid = sanitizer.value(req.params.item, String);
-    var target_username = req.body.target;
+    var userID = sanitizer.value(req.cookies.id, String);
+    var itemID = sanitizer.value(req.params.item, String);
+    var targetID = sanitizer.value(req.body.target, String);
     
-    if (!userid || !target_username || !itemid) {
+    if (!userID || !targetID || !itemID) {
         res.redirect("/");
         return;
     }
 
-    var callback_success = function(message, item, target) {
-        Log.statics.createAdminLog(message);
+    var callbackSuccess = function(message, item, target) {
+        Log.statics.createLog(message);
         res.render("item.ejs", {item: item, target: target});
         return;
     }
 
-    var callback_failure = function(err) {
+    var callbackFailure = function(err) {
         Log.statics.createAdminLog(err);
         res.redirect("/");
     }
     
-    console.log(User);
+    console.log(`${userID} | ${targetID}`)
     
-    User.statics.useItem(userid, itemid, target_username, callback_success, callback_failure);
+    User.statics.useItem(userID, targetID, itemID, callbackSuccess, callbackFailure);
     
 });
 
