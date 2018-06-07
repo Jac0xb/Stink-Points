@@ -1,25 +1,29 @@
+var Model = require("./model");
+
 function createAdminLog(msg) {
     
-    let model = module.exports.model;
-    
-    model.create({log: msg, admin: true});
+    Model.create({log: msg, admin: true});
     console.log(msg);
     
 }
 
-function createLog(msg) {
+function createLog(msg, callbackSuccess, callbackFailure) {
     
-    let model = module.exports.model;
-    
-    model.create({log: msg, admin: false});
+    Model.create({log: msg, admin: false}, function(err, log) {
+        
+        if (log) {
+            callbackSuccess(log);
+        }
+        else {
+            callbackFailure(err);
+        }
+        
+    });
     
 }
 
 
-module.exports = (model) => {
-    module.exports.model = model; 
-    return {
-        createAdminLog,
-        createLog
-    };
+module.exports = {
+    createAdminLog,
+    createLog
 };

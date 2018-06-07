@@ -4,7 +4,7 @@
 //]);
 
 
-require("./framework/express_ext.js");
-require("./framework/mongoose_ext.js");
-require("./framework/routes.js");
+require("./framework/express_ext");
+require("./framework/mongoose_ext");
+require("./framework/routes/routes.js");
 

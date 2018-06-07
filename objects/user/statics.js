@@ -1,5 +1,5 @@
 var async = require("async");
-var [Item, Log] = require("../../framework/objects")(["item", "log"]);
+var [Item, Log] = require("../../framework/objects")("item", "log");
 var Model = require("./model");
 var mongoose = require('mongoose');
 
@@ -28,25 +28,20 @@ function createUser(username, callbackSuccess, callbackFailure) {
     async.waterfall([
         // Checks if user exists in MongoDB database.
         function checkUserExistence(next) {
-            
             Model.findOne({username : username}, (...args) => next(...args));
         },
         // Creates a user in MongoDB database.
-        function insertUser(userSearch, next) { 
+        function insertUser(user, next) { 
             
-            if (userSearch) {
-                return callbackSuccess(userSearch);
-            }
+            if (user) return callbackSuccess(user);
             
-            Model.create(new Model({username: username, points: 0, items: []}), (...args) => next(...args));
+            Model.create({username: username, points: 0, items: []}, (...args) => next(...args));
 
         },
         // If user exists, run success callback.
         function runCallback(user, next) {
             
-            if (!user) {
-                return next({message: "User did not exist."});
-            };
+            if (!user) return next({message: "User did not exist."});
                 
             callbackSuccess(user);
             
@@ -62,8 +57,6 @@ function createUser(username, callbackSuccess, callbackFailure) {
  */
 function useItem(sourceUserID, targetUserID, itemID, callbackSuccess, callbackFailure) {
     
-    console.log(sourceUserID + " | " + targetUserID);
-    
     async.waterfall([
         // Find target user.
         function fetchTargetUser(next) {
@@ -74,21 +67,19 @@ function useItem(sourceUserID, targetUserID, itemID, callbackSuccess, callbackFa
             Model.findById(sourceUserID, (..._args) => next(..._args, targetUser));
         },
         // Check if users exist and find item.
-        function checkExistenceOfUsersAndFindItem(sourceUser, targetUser, next) {
+        function checkUsersAndFindItem(sourceUser, targetUser, next) {
             
             if (!sourceUser || !targetUser || sourceUser.items.indexOf(itemID) < 0) {
-                return next({message : "User did not exist or did not have item."});
+                return next({message : "Users did not exist or did not have item."});
             }
             
             Item.model.findById(itemID, (..._args) => next(..._args, sourceUser, targetUser));
             
         },
         // Use item.
-        function useItem(item, sourceUser, targetUser, next) {
+        function useAndRemoveItem(item, sourceUser, targetUser, next) {
             
-            if (!item) { 
-                next({message : "Item could not be found."}) 
-            }
+            if (!item) return next({message : "Item could not be found."});
                 
             var itemtype, message, damage;
             
@@ -103,20 +94,24 @@ function useItem(sourceUserID, targetUserID, itemID, callbackSuccess, callbackFa
             targetUser.save();
             
             message = `${sourceUser.username} just ${itemtype}'d ${targetUser.username} for ${damage} Stink Points!`;
-            return callbackSuccess(message, item, targetUser);
             
-        },
-        function RemoveItem() {
-            
-            //Model.update(
-            //{_id : sourceUser._id}, 
-            //{$pull : {items : { _id : mongoose.Types.ObjectId(itemID)} } }, 
-            //(..._args) => next(..._args, sourceUser, targetUser));
-            //
-            //Item.remove({_id : mongoose.Types.ObjectId(itemID)})
-            //
-            //callbackSuccess(message, item, targetUser);
-            
+            async.waterfall([
+                function(next) {
+                    Model.update(
+                    {_id : sourceUser._id}, 
+                    {$pull : {items : { _id : mongoose.Types.ObjectId(itemID)} } }, () => next());
+                },
+                function(next) {
+                    Item.model.remove({_id : mongoose.Types.ObjectId(itemID)}, () => next());
+                },
+                function() {
+                    callbackSuccess(message, item, targetUser);
+                }
+            ], 
+            function(err, status) {
+                callbackFailure(err);
+            });
+
         }
     ],
     function(err, status) {

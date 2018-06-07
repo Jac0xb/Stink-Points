@@ -1,7 +1,7 @@
 //var Models = require("./models")();
 
 var io = require('socket.io')(8080);
-var [User, Item, Bag, Log] = require("./objects")(["user", "item", "bag", "log"]);
+var [User, Item, Bag, Log] = require("./objects")("user", "item", "bag", "log");
 
 function GetLogs() {
     
