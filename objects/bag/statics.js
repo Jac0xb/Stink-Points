@@ -16,13 +16,18 @@ function openBag(bagID, userID, callbackSuccess, callbackFailure) {
             Model.findById(bagID, next);
         },
         function(bag, next) {
+            
+            if (!bag) {
+                return next({message: "Item was not found."});
+            }
+            
             Item.model.findById(bag.item, (...args) => next(...args, bag));
         },
         function(item, bag, next) {
                 
             User.model.findById(userID, function(err, user) {
                 
-                if (!user || !bag || !item || err) { 
+                if (!user || !item || err) { 
                     return next({message: "Something has gone terribly wrong."});
                 }
                 

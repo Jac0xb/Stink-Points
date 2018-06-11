@@ -21,7 +21,7 @@
 
             <form id="myform" action="/signup" method="POST" class="ui form sixteen wide column ">
                     <div class="field">
-                        <div>No special symbols and shit. </div>
+                        <div>No special symbols or numbers, english characters and spaces only. </div>
                         <input id="username" type="text" name="username" placeholder="Legit Name">
                         <input id="fingerprint" style="display: none;" type="text" name="fingerprint">
                     </div>
@@ -31,58 +31,6 @@
     </div>
 </body>
 
-<script>
-    $(window).ready(function() {
-
-        $(".button").addClass("disabled");
-
-        $("#username").on("change paste keyup", function() {
-            
-            $(".button").removeClass("disabled");
-            
-            var username = $(this).val();
-            var regex = new RegExp("^[A-z ]{1,}$");
-            var blacklist = new RegExp("^([ ]+)$");
-            
-            if (username.length <= 0 && username.length >= 20) {
-                $(".button").addClass("disabled");  
-                return;
-            }
-            
-            if (blacklist.test(username)) {
-                $(".button").addClass("disabled");  
-                return;
-            }
-            if (regex.test(username) && !blacklist.test(username)) {
-                $(".button").removeClass("disabled");
-                return;
-            }
-            
-            $(".button").addClass("disabled");
-            
-        });
-        
-        var client = new ClientJS(); // Create A New Client Object
-        var fingerprint = client.getFingerprint(); // Get Client's Fingerprint
-        
-        $("#fingerprint").val(fingerprint);
-        
-        socket = io('http://stinkpoints.com:8080'); // Connect the socket on the port defined before.
-
-        socket.emit("validate", {_id: null, fingerprint: fingerprint});
-        
-        socket.on("reconfigure", function(address) {
-            console.log(address.user);
-            
-            var url = '/reconfigure';
-            var form = $('<form action="' + url + '" method="post">' +
-              '<input type="text" name="_id" value="' + address.user + '" />' +
-              '</form>');
-            $('body').append(form);
-            form.submit();
-        });
-        
-    })
-</script>
+<script src="./resources/js/signup.js" type="text/javascript" ></script>
 
 </html>

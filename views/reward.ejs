@@ -1,48 +1,23 @@
 <html>
 <head>
 	
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <preference name="DisallowOverscroll" value="true" />
-    
-    <link rel="stylesheet" type="text/css" href="/resources/semantic/semantic.min.css">
-    
-    <script src="/resources/external/jquery.min.js" type="text/javascript"></script>
-    <script src="/resources/external/client.min.js" type="text/javascript"></script>
-    <script src="/resources/external/socket.io.slim.js"></script>
-    <script src="/resources/semantic/semantic.min.js" type="text/javascript"></script>	
-    <script src="/resources/external/jquery.fittext.js" type="text/javascript"></script>
-    <script src="/resources/external/jsqr.js" type="text/javascript" ></script>
-    
-    <script>
-    
-         if (window.location.hostname.includes("www")) {
-             
-            var local = window.location.href.replace("www.", "");
-            window.location.replace(local);
-         }
-    
-    </script>
-	
+    <% include partials/globals %>
+     
 </head>
-<body style="background: black">
+<body style="background: black; margin: 100px 100px">
     <div class="ui inverted raised segment">
         Congratulations, by some act of god you found/received a Stink Code and retrieved an item. 
         <br>
         <br>
-        The Item you recieve was a: <span style=”color:gold”><%=item.itemtype%></span>!
+        The Item you recieve was a <span style="color: gold;"><%=item.itemtype%></span>!
         <div class="alignedcenter">
-        <a href="/" class="ui fullwide button white">
+        <a href="/" class="ui fullwide button white" style="width: calc(100% - 20px); margin: 25px 10px 11px 10px;">
             Return to StinkPoints.com
         </a>
       </div>
     </div>
 </body>
 </html>
-
-<script>
-    
-    
-</script>
 
 <script type="text/template" data-template="playercard">
     <% include partials/templates/playercard_mobile %>
