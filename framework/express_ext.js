@@ -1,7 +1,7 @@
 const express = require("express");
 var app = express();
 
-var [User, Log] = require("./objects")("user", "log");
+var [User, Log] = require("./object")("user", "log");
 var sanitizer = require("sanitize")();
 var io = require('./socket').io;
 var _ = require("underscore");

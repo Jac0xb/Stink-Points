@@ -8,7 +8,7 @@ module.exports = {
 
 var async = require("async");
 var Model = require("./model");
-var [Item, Log] = require("../../framework/objects")("item", "log");
+var [Item, Log] = require("../../object")("item", "log");
 var mongoose = require('mongoose');
 
 // Common properties.

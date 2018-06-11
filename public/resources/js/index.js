@@ -11,8 +11,6 @@ var localuser = null;
 */
 function CreateItem(item) {
 
-    console.log(item)
-
     var $item = $("#" + item._id);
 
     if ($item.length > 0) {
@@ -179,7 +177,7 @@ function UpdateUser(user) {
 $(document).ready(function() {
     
     if (window.location.hostname.includes("/desktop")) {
-        ("#ammodisplay").text("Go to StinkPoints.com to Signup or LEAVE")
+        ("#ammodisplay").text("Go to StinkPoints.com to Signup or LEAVE");
     }
     
     $("#logstoggle").click(function() {
@@ -202,9 +200,6 @@ $(document).ready(function() {
         userid = getCookieValue("id");
     }
     
-    var client = new ClientJS(); // Create A New Client Object
-    var fingerprint = client.getFingerprint(); // Get Client's Fingerprint
-    
     socket = io('http://' + window.location.hostname + ':8080/'); // Connect the socket on the port defined before.
     
     socket.emit("requestalllogs");
@@ -214,8 +209,6 @@ $(document).ready(function() {
             UpdateLog(logs[i]);
         }
     })
-    
-    socket.emit("validate", {_id: userid, fingerprint: fingerprint});
     
     socket.emit("requestuser", userid);
     

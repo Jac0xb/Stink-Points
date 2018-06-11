@@ -5,10 +5,10 @@ module.exports = (...config) => {
 
     var array = [];
 
-    var user = require('../objects/user/blueprint');
-    var item = require('../objects/item/blueprint');
-    var bag = require('../objects/bag/blueprint');
-    var log = require('../objects/log/blueprint');
+    var user = require('./objects/user/blueprint');
+    var item = require('./objects/item/blueprint');
+    var bag = require('./objects/bag/blueprint');
+    var log = require('./objects/log/blueprint');
 
     for (var i = 0; i < config.length; i++) {
         

@@ -6,7 +6,7 @@ module.exports = {
 
 var async = require("async");
 var Model = require("./model");
-var [User, Item] = require("../../framework/objects")("user","item");
+var [User, Item] = require("../../object")("user","item");
 var mongoose = require('mongoose');
 
 function openBag(bagID, userID, callbackSuccess, callbackFailure) {

@@ -1,6 +1,6 @@
 var expressApp = require("../express_ext");
 var commons = require("../commons");
-var [User, Item, Bag, Log] = require("../objects")("user", "item", "bag", "log");
+var [User, Item, Bag, Log] = require("../object")("user", "item", "bag", "log");
 var sanitizer = require("sanitize")();
 
 /*
@@ -35,19 +35,19 @@ expressApp.post("/signup", function(req, res) {
     }
     
     // The function called if the user is successfully created.
-    var callbackSuccess = function (user) {
+    var _s = function Success(user) {
         Log.statics.createAdminLog("User Successfully Created: " + user.username);
         res.cookie("id", user._id, {expires: commons.infiniteExpire()});
         res.redirect("/");
     };
 
     // The function called if the user is unsuccessfully created.    
-    var callbackFailure = function(username) {
+    var _f = function Failure(username) {
         Log.statics.createAdminLog("User Not Created: " + username);
         res.redirect("/signup?msg=failed");
     }
     
-    User.statics.createUser(req.body.username, callbackSuccess, callbackFailure);
+    User.statics.createUser(req.body.username, _s, _f);
 
 })
 
@@ -127,13 +127,13 @@ expressApp.get("/debug/createbag/:itemtype", function(req, res) {
     if (!userid || !itemtype) return res.redirect("/");
     
     // Render 'item recieved' view.
-    var _s = function(bag) {
+    var _s = function Success(bag) {
         res.send(`stinkpoints.com/rewards?reward=${bag.id}`);
         console.log(`Item was created: ${itemtype}!`);
     }
     
     // Log error.
-    var _f = function(err) {
+    var _f = function Failure(err) {
         console.log("Item could not be created!", "\n", err);
     }
     

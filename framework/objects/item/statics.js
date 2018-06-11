@@ -5,8 +5,8 @@ module.exports = {
 };
 
 var Model = require("./model");
-var [Bag] =  require("../../framework/objects")("bag");
-var $ = require("../../framework/commons");
+var [Bag] =  require("../../object")("bag");
+var $ = require("../../commons");
 
 Bag;
 
