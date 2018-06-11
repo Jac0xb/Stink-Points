@@ -5,7 +5,7 @@ Panopticism + Party Game = Total Warfare
 ### 'Stink Points' is a Node.js party game app powered by Express, Mongoose, and Socket.io. 
 
 Stink Points is a party game designed for my 23rd birthday which was meant to force everyone at the party to interact with eachother. 
-Every player is given 5 stink points at the start and also given 1 stink point every 5 minutes. Stink points and be given to other players at the party. The goal is to have the least stink points by the end of the night.
+Every player is given 5 stink points at the start and also given 1 stink point every 5 minutes. Your individual stink points can be given to other players at the party and is visually represented as a scoreboard with the person with the most stink points at the top of the leaderboard. The goal is to have the least stink points by the end of the night.
 
 ## QR Rewards
 
