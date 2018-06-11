@@ -1,6 +1,14 @@
+module.exports = {
+    Common,
+    isValidUsername,
+    createUser,
+    useItem,
+    giveDamage
+};
+
 var async = require("async");
-var [Item, Log] = require("../../framework/objects")("item", "log");
 var Model = require("./model");
+var [Item, Log] = require("../../framework/objects")("item", "log");
 var mongoose = require('mongoose');
 
 // Common properties.
@@ -180,11 +188,3 @@ function giveDamage(sourceUserJObject, targetUserJObject, damage, callbackSucces
     });
 
 }        
-
-module.exports = {
-    Common,
-    isValidUsername,
-    createUser,
-    useItem,
-    giveDamage
-};

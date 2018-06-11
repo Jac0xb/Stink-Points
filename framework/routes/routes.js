@@ -61,11 +61,9 @@ expressApp.post("/item/:item", function(req, res) {
     var [userID, itemID, targetID] = [sanitizer.value(req.cookies.id, String), sanitizer.value(req.params.item, String), sanitizer.value(req.body.target, String)];
     
     // If any of the inputs are invalid, cancel.
-    if (!targetID || !itemID) {
-        return res.redirect("/");
-    }
+    if (!userID || !targetID || !itemID) return res.redirect("/");
 
-    // Render 'item used' page and broadcast to users.
+    // Render 'item used' view and broadcast to users.
     var _s = function Success(message, item, targetUser) {
         Log.statics.createLog(message);
         res.render("item.ejs", {item: item, target: targetUser});
@@ -73,7 +71,7 @@ expressApp.post("/item/:item", function(req, res) {
 
     // Report failure.
     var _f = function Failure(err) {
-        Log.statics.createAdminLog(err);
+        Log.statics.createAdminLog(err.Message);
         res.redirect("/");
     }
     
@@ -101,6 +99,8 @@ expressApp.get("/rewards", function(req, res) {
     // Sanitize inputs.
     var [userID, bagID] = [sanitizer.value(req.cookies.id, String), sanitizer.value(req.query.reward, String)];
 
+    if (!userID || !bagID) return res.redirect("/");
+
     // Render reward view.
     var _s = function Success(item) {
         res.render("reward.ejs", {item : item});
@@ -124,9 +124,7 @@ expressApp.get("/debug/createbag/:itemtype", function(req, res) {
     // Sanitize inputs.
     var [userid, itemtype] = [sanitizer.value(req.cookies.id, String), sanitizer.value(req.params.itemtype, String)];
     
-    if (!itemtype) {
-        return res.redirect("/");
-    }
+    if (!userid || !itemtype) return res.redirect("/");
     
     // Render 'item recieved' view.
     var _s = function(bag) {
@@ -136,8 +134,7 @@ expressApp.get("/debug/createbag/:itemtype", function(req, res) {
     
     // Log error.
     var _f = function(err) {
-        console.log("Item could not be created!");
-        console.log(err);
+        console.log("Item could not be created!", "\n", err);
     }
     
     Item.statics.spawnItem(itemtype, _s, _f);
@@ -145,15 +142,10 @@ expressApp.get("/debug/createbag/:itemtype", function(req, res) {
 });
 
 /**
-*   
+*   Renders the game area view.
 */
 expressApp.get("/", function(req, res) {
-
-    // Sanitize input.
-    var userid = sanitizer.value(req.cookies.id, String);
-    
     res.render("desktop.ejs");
-    
 });
 
 /**
@@ -165,6 +157,9 @@ expressApp.get("/desktop", function(req, res) {
     
 });
 
+/**
+ *  Captures all other routes and redirects.
+ */
 expressApp.get("*", function(req, res) {
     res.redirect("/");
 });

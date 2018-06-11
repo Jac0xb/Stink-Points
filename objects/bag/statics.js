@@ -1,6 +1,12 @@
+var _ = require("underscore");
+
+module.exports = {
+    openBag
+};
+
 var async = require("async");
-var [User, Item] = require("../../framework/objects")("user","item");
 var Model = require("./model");
+var [User, Item] = require("../../framework/objects")("user","item");
 var mongoose = require('mongoose');
 
 function openBag(bagID, userID, callbackSuccess, callbackFailure) {
@@ -10,9 +16,9 @@ function openBag(bagID, userID, callbackSuccess, callbackFailure) {
             Model.findById(bagID, next);
         },
         function(bag, next) {
-            Item.model.findById(bag.item, (...args) => next(bag, ...args));
+            Item.model.findById(bag.item, (...args) => next(...args, bag));
         },
-        function(bag, item, next) {
+        function(item, bag, next) {
                 
             User.model.findById(userID, function(err, user) {
                 
@@ -29,10 +35,6 @@ function openBag(bagID, userID, callbackSuccess, callbackFailure) {
             });
         }
     ], function(err) {
-        callbackFailure(err);
+        callbackFailure(["Error", err ]);
     });
 }
-
-module.exports = {
-    openBag
-};

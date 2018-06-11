@@ -1,6 +1,14 @@
+var _ = require("underscore");
+
+module.exports = {
+    spawnItem
+};
+
 var Model = require("./model");
-var [Bag] =  require.main.require("./framework/objects")("bag");
-var $ = require.main.require("./framework/commons");
+var [Bag] =  require("../../framework/objects")("bag");
+var $ = require("../../framework/commons");
+
+Bag;
 
 var async = require("async");
 
@@ -34,6 +42,3 @@ function spawnItem(itemtype, _s, _f) {
     });
 }
 
-module.exports = {
-    spawnItem
-};

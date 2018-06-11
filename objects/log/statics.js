@@ -1,3 +1,8 @@
+module.exports = {
+    createAdminLog,
+    createLog
+};
+
 var Model = require("./model");
 
 function createAdminLog(msg) {
@@ -11,19 +16,13 @@ function createLog(msg, callbackSuccess, callbackFailure) {
     
     Model.create({log: msg, admin: false}, function(err, log) {
         
-        if (log) {
+        if (log && callbackSuccess) {
             callbackSuccess(log);
         }
-        else {
+        else if (callbackFailure) {
             callbackFailure(err);
         }
         
     });
     
 }
-
-
-module.exports = {
-    createAdminLog,
-    createLog
-};

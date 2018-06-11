@@ -1,5 +1,5 @@
 // Export 
-module.exports = { 
-    statics : require("./statics"), 
-    model : require("./model")
-};
+module.exports = {};
+
+module.exports.statics = require("./statics");
+module.exports.model = require("./model");
