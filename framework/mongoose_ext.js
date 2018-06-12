@@ -1,6 +1,6 @@
 var mongoose = require("mongoose");
 
-mongoose.connect("mongodb://localhost/stinkpoints_v4", function(err) {
+mongoose.connect("mongodb://localhost/stinkpoints", function(err) {
    
    if (err) {
       console.log(err);
